@@ -105,3 +105,8 @@ export function tokenizeUrl(url) {
     });
     return `${baseUrl}?${filteredParams.join("&")}`;
 }
+
+// Waits for a given delay (ms)
+export function delay(ms) {
+    return new Promise(r => setTimeout(r, ms));
+}

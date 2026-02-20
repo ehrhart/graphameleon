@@ -17,6 +17,7 @@ const browser = require('webextension-polyfill') // Handle cross-browser API com
 
 const Papa = require('papaparse')
 
+import { FORMAT_N3, FORMAT_TTL, FORMAT_JSON, FORMAT_CSV } from '../constants'
 import RequestCollector from './Request'
 import Mapper from './Mapper'
 
@@ -226,7 +227,9 @@ export default class CollectManager {
 
         if (this.mapper.graph.killed) {
             this.mapper.graph.revive()
-            this.con[this.uiid].port.postMessage({type: "revive"})
+            if (this.uiid && this.con[this.uiid]) {
+                this.con[this.uiid].port.postMessage({type: "revive"})
+            }
         }
     }
 
@@ -246,37 +249,41 @@ export default class CollectManager {
 
     // Send the updated stats
     update() {
-        this.con[this.uiid].port.postMessage({
-            type: "update",
-            content: this.counters
-        })
+        if (this.uiid && this.con[this.uiid]) {
+            this.con[this.uiid].port.postMessage({
+                type: "update",
+                content: this.counters
+            })
+        }
     }
 
     // Send the updated graph viz builder data
     updateGraph() {
-        this.con[this.uiid].port.postMessage({
-            type: "graph",
-            content: this.mapper.graph.data
-        })
+        if (this.uiid && this.con[this.uiid]) {
+            this.con[this.uiid].port.postMessage({
+                type: "graph",
+                content: this.mapper.graph.data
+            })
+        }
     }
 
     // Build an export of the collected data in a given format
     export() {
         switch(this.params.format) {
-            case "n3":
+            case FORMAT_N3:
                 // No formatting required
                 this.download(this.mapped, this.params.format)
                 break;
-            case "ttl":
+            case FORMAT_TTL:
                 // Turtle formatting
                 const formatted = this.mapper.format(this.mapped, this.params.format)
                 this.download(formatted, this.params.format)
                 break;
-            case "json":
+            case FORMAT_JSON:
                 // No formatting required
                 this.download(JSON.stringify(this.traces), this.params.format)
                 break
-            case "csv":
+            case FORMAT_CSV:
                 // CSV formatting
                 this.download(Papa.unparse(JSON.stringify(this.traces)), this.params.format)
                 break;

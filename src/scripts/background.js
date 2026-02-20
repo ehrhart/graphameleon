@@ -30,6 +30,14 @@ Background script:
 const browser = require('webextension-polyfill') // Handle cross-browser API compatibility
 import { current_browser } from './utils/settings' // Retrieve which browser is currently used
 
+import {
+    MESSAGE_TYPE_AUTOMATION,
+    COMMANDS,
+    FORMAT_TTL,
+    FORMAT_JSON,
+    FORMAT_CSV,
+} from './constants';
+
 var browser_action = (current_browser == "firefox")
     ? browser.browserAction
     : browser.action
@@ -38,16 +46,100 @@ var browser_action = (current_browser == "firefox")
 import CollectManager from './modules/Manager'
 const manager = new CollectManager()
 
+browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    console.log("Received runtime message:", message);
+
+    if (message.type === MESSAGE_TYPE_AUTOMATION) {
+        const command = message.command;
+        const data = message.data || {};
+
+        console.log("Automation command:", command, "Data:", data);
+
+        try {
+            switch (command) {
+                case COMMANDS.SET_PARAMS:
+                    manager.params = { ...manager.params, ...data };
+                    if (data.mode === "semantize" && data.rules) {
+                        manager.mapper.setRules(data.rules);
+                    }
+                    sendResponse({ success: true, params: manager.params });
+                    break;
+                case COMMANDS.START:
+                    manager.is_running = true;
+                    manager.activate();
+                    sendResponse({ success: true });
+                    break;
+                case COMMANDS.STOP:
+                    manager.is_running = false;
+                    manager.desactivate();
+                    sendResponse({ success: true });
+                    break;
+                case COMMANDS.EXPORT:
+                    manager.export();
+                    sendResponse({ success: true });
+                    break;
+                case COMMANDS.RESET:
+                    manager.reset();
+                    if (manager.uiid) {
+                        manager.update();
+                        manager.updateGraph();
+                    }
+                    sendResponse({ success: true });
+                    break;
+                case COMMANDS.GET_STATUS:
+                    sendResponse({
+                        success: true,
+                        isRunning: manager.is_running,
+                        params: manager.params,
+                        counters: manager.counters
+                    });
+                    break;
+                case COMMANDS.GET_DATA:
+                    let exportData = null;
+                    if (manager.params.mode === "semantize") {
+                        if (manager.params.format === FORMAT_TTL) {
+                            exportData = manager.mapper.format(manager.mapped, "text/turtle");
+                        } else {
+                            exportData = manager.mapped;
+                        }
+                    } else {
+                        if (manager.params.format === FORMAT_JSON) {
+                            exportData = manager.traces;
+                        } else if (manager.params.format === FORMAT_CSV) {
+                            exportData = Papa.unparse(manager.traces);
+                        } else {
+                            exportData = manager.traces;
+                        }
+                    }
+                    sendResponse({
+                        success: true,
+                        data: exportData,
+                        counters: manager.counters,
+                        params: manager.params
+                    });
+                    break;
+                default:
+                    sendResponse({ success: false, error: "Unknown command: " + command });
+            }
+        } catch (error) {
+            console.error("Automation command error:", error);
+            sendResponse({ success: false, error: error.message });
+        }
+    }
+
+    return true;
+});
+
 /*
 Allows the extension to handle the browser action click event and either activate an existing extension tab,
 or create a new one if none exists. It ensures that only one extension tab is active at a time.
 */
 let extensionTabId = null;
-browser_action.onClicked.addListener(async (tab) => { 
+browser_action.onClicked.addListener(async (tab) => {
     if (extensionTabId) {
         try {
             // Extension tab already exists, focus on it
-            const extensionTab = await browser.tabs.get(extensionTabId); 
+            const extensionTab = await browser.tabs.get(extensionTabId);
             await browser.tabs.update(extensionTabId, { active: true });
             await browser.windows.update(extensionTab.windowId, { focused: true });
         } catch (error) {

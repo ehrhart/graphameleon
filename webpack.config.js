@@ -34,7 +34,8 @@ module.exports = (env, argv) => {
         entry: {
             index: './src/index.jsx',
             background: './src/scripts/background.js',
-            content: './src/scripts/content.js'
+            content: './src/scripts/content.js',
+            automation_content: './src/scripts/automation_content.js'
         },
         output: {
             path: path.resolve(__dirname, 'dist'),

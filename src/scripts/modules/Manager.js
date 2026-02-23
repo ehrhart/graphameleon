@@ -227,9 +227,7 @@ export default class CollectManager {
 
         if (this.mapper.graph.killed) {
             this.mapper.graph.revive()
-            if (this.uiid && this.con[this.uiid]) {
-                this.con[this.uiid].port.postMessage({type: "revive"})
-            }
+            this.con[this.uiid].port.postMessage({type: "revive"})
         }
     }
 
@@ -249,22 +247,18 @@ export default class CollectManager {
 
     // Send the updated stats
     update() {
-        if (this.uiid && this.con[this.uiid]) {
-            this.con[this.uiid].port.postMessage({
-                type: "update",
-                content: this.counters
-            })
-        }
+        this.con[this.uiid].port.postMessage({
+            type: "update",
+            content: this.counters
+        })
     }
 
     // Send the updated graph viz builder data
     updateGraph() {
-        if (this.uiid && this.con[this.uiid]) {
-            this.con[this.uiid].port.postMessage({
-                type: "graph",
-                content: this.mapper.graph.data
-            })
-        }
+        this.con[this.uiid].port.postMessage({
+            type: "graph",
+            content: this.mapper.graph.data
+        })
     }
 
     // Build an export of the collected data in a given format

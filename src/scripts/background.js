@@ -33,9 +33,6 @@ import { current_browser } from './utils/settings' // Retrieve which browser is 
 import {
     MESSAGE_TYPE_AUTOMATION,
     COMMANDS,
-    FORMAT_TTL,
-    FORMAT_JSON,
-    FORMAT_CSV,
 } from './constants';
 
 var browser_action = (current_browser == "firefox")
@@ -97,15 +94,15 @@ browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
                 case COMMANDS.GET_DATA:
                     let exportData = null;
                     if (manager.params.mode === "semantize") {
-                        if (manager.params.format === FORMAT_TTL) {
+                        if (manager.params.format === "ttl") {
                             exportData = manager.mapper.format(manager.mapped, "text/turtle");
                         } else {
                             exportData = manager.mapped;
                         }
                     } else {
-                        if (manager.params.format === FORMAT_JSON) {
+                        if (manager.params.format === "json") {
                             exportData = manager.traces;
-                        } else if (manager.params.format === FORMAT_CSV) {
+                        } else if (manager.params.format === "csv") {
                             exportData = Papa.unparse(manager.traces);
                         } else {
                             exportData = manager.traces;

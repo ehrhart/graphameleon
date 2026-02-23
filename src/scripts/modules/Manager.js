@@ -17,7 +17,6 @@ const browser = require('webextension-polyfill') // Handle cross-browser API com
 
 const Papa = require('papaparse')
 
-import { FORMAT_N3, FORMAT_TTL, FORMAT_JSON, FORMAT_CSV } from '../constants'
 import RequestCollector from './Request'
 import Mapper from './Mapper'
 
@@ -264,20 +263,20 @@ export default class CollectManager {
     // Build an export of the collected data in a given format
     export() {
         switch(this.params.format) {
-            case FORMAT_N3:
+            case "n3":
                 // No formatting required
                 this.download(this.mapped, this.params.format)
                 break;
-            case FORMAT_TTL:
+            case "ttl":
                 // Turtle formatting
                 const formatted = this.mapper.format(this.mapped, this.params.format)
                 this.download(formatted, this.params.format)
                 break;
-            case FORMAT_JSON:
+            case "json":
                 // No formatting required
                 this.download(JSON.stringify(this.traces), this.params.format)
                 break
-            case FORMAT_CSV:
+            case "csv":
                 // CSV formatting
                 this.download(Papa.unparse(JSON.stringify(this.traces)), this.params.format)
                 break;

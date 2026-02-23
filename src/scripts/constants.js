@@ -11,9 +11,3 @@ export const COMMANDS = {
     GET_STATUS: "getStatus",
     GET_DATA: "getData",
 };
-
-// Export/data formats
-export const FORMAT_N3 = "n3";
-export const FORMAT_TTL = "ttl";
-export const FORMAT_JSON = "json";
-export const FORMAT_CSV = "csv";

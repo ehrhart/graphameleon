@@ -43,6 +43,11 @@ var browser_action = (current_browser == "firefox")
 import CollectManager from './modules/Manager'
 const manager = new CollectManager()
 
+/*
+Allows the extension to handle the automation commands sent by the page via the automation content script.
+The background script listens for MESSAGE_TYPE_AUTOMATION messages, executes the corresponding command on the
+manager module, and sends back a response indicating success or failure, along with any relevant data.
+*/
 browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     console.log("Received runtime message:", message);
 
